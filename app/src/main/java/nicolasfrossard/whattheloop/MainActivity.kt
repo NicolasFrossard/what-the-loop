@@ -3,7 +3,9 @@ package nicolasfrossard.whattheloop
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
+import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,5 +32,16 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+
+        addListenerOnButton()
+    }
+
+    private fun addListenerOnButton() {
+        val button = findViewById<Button>(R.id.buttonPlaySomeGoodStuff)
+
+        button.setOnClickListener {
+            val mediaPlayer = PerfectLoopMediaPlayer.create(this, R.raw.guitar_85bpm_acoustic_f01)
+            mediaPlayer.start()
+        }
     }
 }
