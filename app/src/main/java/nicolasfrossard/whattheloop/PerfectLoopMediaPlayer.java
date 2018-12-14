@@ -20,6 +20,9 @@ public class PerfectLoopMediaPlayer {
     private int mBeatResId = 0;
     private String mPath = null;
 
+    private MediaPlayer mCurrentBeatPlayer = null;
+    private MediaPlayer mNextBeatPlayer = null;
+
     private MediaPlayer mCurrentPlayer = null;
     private MediaPlayer mNextPlayer = null;
 
@@ -41,12 +44,19 @@ public class PerfectLoopMediaPlayer {
         mBeatResId = beatResId;
         try {
             AssetFileDescriptor afd = context.getResources().openRawResourceFd(mResId);
+            AssetFileDescriptor beatafd = context.getResources().openRawResourceFd(mBeatResId);
+
+            mCurrentBeatPlayer = new MediaPlayer();
+            mCurrentBeatPlayer.setDataSource(beatafd.getFileDescriptor(), beatafd.getStartOffset(), beatafd.getLength());
+            mCurrentBeatPlayer.prepareAsync();
+
             mCurrentPlayer = new MediaPlayer();
             mCurrentPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             mCurrentPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
                     mCurrentPlayer.start();
+                    mCurrentBeatPlayer.start();
                 }
             });
             mCurrentPlayer.prepareAsync();
@@ -58,8 +68,22 @@ public class PerfectLoopMediaPlayer {
 
     private void createNextMediaPlayerRaw() {
         AssetFileDescriptor afd = mContext.getResources().openRawResourceFd(mResId);
+        AssetFileDescriptor beatafd = mContext.getResources().openRawResourceFd(mBeatResId);
+
         mNextPlayer = new MediaPlayer();
+        mNextBeatPlayer = new MediaPlayer();
+
         try {
+            mNextBeatPlayer.setDataSource(beatafd.getFileDescriptor(), beatafd.getStartOffset(), beatafd.getLength());
+            mNextBeatPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mNextBeatPlayer.seekTo(0);
+                    mCurrentBeatPlayer.setNextMediaPlayer(mNextBeatPlayer);
+                }
+            });
+            mNextBeatPlayer.prepareAsync();
+
             mNextPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             mNextPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -75,76 +99,17 @@ public class PerfectLoopMediaPlayer {
         }
     }
 
-    /**
-     * Creating instance of the player with given context
-     * and internal memory/SD path resource
-     *
-     * @param context - context
-     * @param path    - internal memory/SD path to sound resource
-     * @return new instance
-     */
-    public static PerfectLoopMediaPlayer create(Context context, String path) {
-        return new PerfectLoopMediaPlayer(context, path);
-    }
-
-    private PerfectLoopMediaPlayer(Context context, String path) {
-        mContext = context;
-        mPath = path;
-        try {
-            mCurrentPlayer.setDataSource(mPath);
-            mCurrentPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    mCurrentPlayer.start();
-                }
-            });
-            mCurrentPlayer.prepareAsync();
-            createNextMediaPlayerPath();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void createNextMediaPlayerPath() {
-        mNextPlayer = new MediaPlayer();
-        try {
-            mNextPlayer.setDataSource(mPath);
-            mNextPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mNextPlayer.seekTo(0);
-                    mCurrentPlayer.setNextMediaPlayer(mNextPlayer);
-                    mCurrentPlayer.setOnCompletionListener(onCompletionListener);
-                }
-            });
-            mNextPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
     private final MediaPlayer.OnCompletionListener onCompletionListener =
             new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mediaPlayer) {
                     mCurrentPlayer = mNextPlayer;
+                    mCurrentBeatPlayer = mNextBeatPlayer;
                     createNextMediaPlayerRaw();
                     mediaPlayer.release();
                 }
             };
 
-
-    public void start() throws IllegalStateException {
-        if (mCurrentPlayer != null) {
-            Log.d(TAG, "start()");
-            mCurrentPlayer.start();
-        } else {
-            Log.d(TAG, "start() | mCurrentPlayer is NULL");
-        }
-
-    }
 
     public void reset() {
         if (mCurrentPlayer != null) {
@@ -152,6 +117,13 @@ public class PerfectLoopMediaPlayer {
             mCurrentPlayer.reset();
         } else {
             Log.d(TAG, "reset() | mCurrentPlayer is NULL");
+        }
+
+        if (mCurrentBeatPlayer != null) {
+            Log.d(TAG, "reset()");
+            mCurrentBeatPlayer.reset();
+        } else {
+            Log.d(TAG, "reset() | mCurrentBeatPlayer is NULL");
         }
 
     }

@@ -8,7 +8,6 @@ class LoopPlayer {
 
     fun play(context: Context, loopResourceRef: Int, beatResourceRef: Int) {
         player = PerfectLoopMediaPlayer.create(context, loopResourceRef, beatResourceRef)
-        player.start()
     }
 
     fun pause() {
