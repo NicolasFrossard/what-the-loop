@@ -6,8 +6,8 @@ class LoopPlayer {
 
     private lateinit var player: PerfectLoopMediaPlayer
 
-    fun play(context: Context, resourceRef: Int) {
-        player = PerfectLoopMediaPlayer.create(context, resourceRef)
+    fun play(context: Context, loopResourceRef: Int, beatResourceRef: Int) {
+        player = PerfectLoopMediaPlayer.create(context, loopResourceRef, beatResourceRef)
         player.start()
     }
 

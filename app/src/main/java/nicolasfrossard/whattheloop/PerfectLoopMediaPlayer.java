@@ -17,6 +17,7 @@ public class PerfectLoopMediaPlayer {
     private static final String TAG = PerfectLoopMediaPlayer.class.getName();
     private Context mContext = null;
     private int mResId = 0;
+    private int mBeatResId = 0;
     private String mPath = null;
 
     private MediaPlayer mCurrentPlayer = null;
@@ -29,14 +30,15 @@ public class PerfectLoopMediaPlayer {
      * @param resId   - raw resource
      * @return new instance
      */
-    public static PerfectLoopMediaPlayer create(Context context, int resId) {
-        return new PerfectLoopMediaPlayer(context, resId);
+    public static PerfectLoopMediaPlayer create(Context context, int resId, int beatResId) {
+        return new PerfectLoopMediaPlayer(context, resId, beatResId);
     }
 
 
-    private PerfectLoopMediaPlayer(Context context, int resId) {
+    private PerfectLoopMediaPlayer(Context context, int resId, int beatResId) {
         mContext = context;
         mResId = resId;
+        mBeatResId = beatResId;
         try {
             AssetFileDescriptor afd = context.getResources().openRawResourceFd(mResId);
             mCurrentPlayer = new MediaPlayer();
@@ -71,7 +73,6 @@ public class PerfectLoopMediaPlayer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -135,23 +136,6 @@ public class PerfectLoopMediaPlayer {
             };
 
 
-    public boolean isPlaying() throws IllegalStateException {
-        if (mCurrentPlayer != null) {
-            return mCurrentPlayer.isPlaying();
-        } else {
-            return false;
-        }
-    }
-
-    public void setVolume(float leftVolume, float rightVolume) {
-        if (mCurrentPlayer != null) {
-            mCurrentPlayer.setVolume(leftVolume, rightVolume);
-        } else {
-            Log.d(TAG, "setVolume()");
-        }
-
-    }
-
     public void start() throws IllegalStateException {
         if (mCurrentPlayer != null) {
             Log.d(TAG, "start()");
@@ -162,62 +146,12 @@ public class PerfectLoopMediaPlayer {
 
     }
 
-    public void stop() throws IllegalStateException {
-        if (mCurrentPlayer != null && mCurrentPlayer.isPlaying()) {
-            Log.d(TAG, "stop()");
-            mCurrentPlayer.stop();
-        } else {
-            Log.d(TAG, "stop() | mCurrentPlayer " +
-                    "is NULL or not playing");
-        }
-
-    }
-
-    public void pause() throws IllegalStateException {
-        if (mCurrentPlayer != null && mCurrentPlayer.isPlaying()) {
-            Log.d(TAG, "pause()");
-            mCurrentPlayer.pause();
-        } else {
-            Log.d(TAG, "pause() | mCurrentPlayer " +
-                    "is NULL or not playing");
-        }
-
-    }
-
-    public void setWakeMode(Context c, int mode) {
-        if (mCurrentPlayer != null) {
-            mCurrentPlayer.setWakeMode(c, mode);
-            Log.d(TAG, "setWakeMode() | ");
-        } else {
-            Log.d(TAG, "setWakeMode() | " +
-                    "mCurrentPlayer is NULL");
-        }
-    }
-
-    public void setAudioStreamType(int audioStreamType) {
-        if (mCurrentPlayer != null) {
-            mCurrentPlayer.setAudioStreamType(audioStreamType);
-        } else {
-            Log.d(TAG, "setAudioStreamType() | " +
-                    "mCurrentPlayer is NULL");
-        }
-    }
-
-    public void release() {
-        Log.d(TAG, "release()");
-        if (mCurrentPlayer != null)
-            mCurrentPlayer.release();
-        if (mNextPlayer != null)
-            mNextPlayer.release();
-    }
-
     public void reset() {
         if (mCurrentPlayer != null) {
             Log.d(TAG, "reset()");
             mCurrentPlayer.reset();
         } else {
-            Log.d(TAG, "reset() | " +
-                    "mCurrentPlayer is NULL");
+            Log.d(TAG, "reset() | mCurrentPlayer is NULL");
         }
 
     }
